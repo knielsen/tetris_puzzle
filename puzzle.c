@@ -243,7 +243,7 @@ recurse(uint32_t iter, uint32_t state,
     uint32_t num_orientations;
 
     p = pieces_available[i];
-    pieces_available[i] = pieces_available[0];
+    pieces_available[i] = pieces_available[iter];
     num_orientations = p.n;
 
     /* Iterate over the possible orientations. */
@@ -267,7 +267,7 @@ recurse(uint32_t iter, uint32_t state,
     }
 
     /* Restore pieces_available[] array for next iteration. */
-    pieces_available[i] = p;
+    pieces_available[iter] = p;
   }
 }
 
