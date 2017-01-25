@@ -219,9 +219,12 @@ calc_pieces_available(struct piece_orientations avail[NUM_PIECES])
 }
 
 
+static uint64_t iter_count;
+
 static void
 found_solution(struct placement solution[NUM_PIECES])
 {
+  ++iter_count;
   printf("Hey, found a solution!\n");
   print_solution(solution, NUM_PIECES);
 }
@@ -257,8 +260,10 @@ recurse(uint32_t iter, uint32_t state,
           uint32_t new_state;
 
           piece_mask = mask << (x+W*y);
-          if (piece_mask & state)
+          if (piece_mask & state) {
+            ++iter_count;
             continue;                           /* Does not fit here */
+          }
           new_state = state | piece_mask;
           solution[iter].piece_mask = piece_mask;
           recurse(iter+1, new_state, pieces_available, solution);
@@ -279,7 +284,9 @@ main(int argc, char *argv[])
   struct placement solution[NUM_PIECES];
 
   calc_pieces_available(pieces_available);
+  iter_count = 0;
   recurse(0, 0, pieces_available, solution);
+  printf("Solution candidates checked: %lu\n", (unsigned long)iter_count);
 
   return 0;
 }
