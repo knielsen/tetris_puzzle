@@ -235,44 +235,35 @@ recurse(uint32_t iter, uint32_t state,
         struct piece_orientations pieces_available[NUM_PIECES],
         struct placement solution[NUM_PIECES])
 {
-  uint32_t i, j, x, y;
+  uint32_t j, x, y;
+  struct piece_orientations *p;
+  uint32_t num_orientations;
 
   if (iter == NUM_PIECES)
     return found_solution(solution);
 
-  /* Iterate over the remaining pieces. */
-  for (i = iter; i < NUM_PIECES; ++i) {
-    struct piece_orientations p;
-    uint32_t num_orientations;
+  p = &pieces_available[iter];
+  /* Iterate over the possible orientations. */
+  num_orientations = p->n;
+  for (j = 0; j < num_orientations; ++j) {
+    uint32_t mask = p->masks[j];
+    uint32_t x_max = W - p->w[j];
+    uint32_t y_max = H - p->h[j];
+    for (y = 0; y <= y_max; ++y) {
+      for (x = 0; x <= x_max; ++x) {
+        uint32_t piece_mask;
+        uint32_t new_state;
 
-    p = pieces_available[i];
-    pieces_available[i] = pieces_available[iter];
-    num_orientations = p.n;
-
-    /* Iterate over the possible orientations. */
-    for (j = 0; j < num_orientations; ++j) {
-      uint32_t mask = p.masks[j];
-      uint32_t x_max = W - p.w[j];
-      uint32_t y_max = H - p.h[j];
-      for (y = 0; y <= y_max; ++y) {
-        for (x = 0; x <= x_max; ++x) {
-          uint32_t piece_mask;
-          uint32_t new_state;
-
-          piece_mask = mask << (x+W*y);
-          if (piece_mask & state) {
-            ++iter_count;
-            continue;                           /* Does not fit here */
-          }
-          new_state = state | piece_mask;
-          solution[iter].piece_mask = piece_mask;
-          recurse(iter+1, new_state, pieces_available, solution);
+        piece_mask = mask << (x+W*y);
+        if (piece_mask & state) {
+          ++iter_count;
+          continue;                             /* Does not fit here */
         }
+        new_state = state | piece_mask;
+        solution[iter].piece_mask = piece_mask;
+        recurse(iter+1, new_state, pieces_available, solution);
       }
     }
-
-    /* Restore pieces_available[] array for next iteration. */
-    pieces_available[iter] = p;
   }
 }
 
